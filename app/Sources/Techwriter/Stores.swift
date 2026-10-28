@@ -272,12 +272,24 @@ final class DrillTimer: ObservableObject {
     }
 }
 
+/// View-local editable value. Used in place of `@State`, which is a macro in recent SDKs
+/// and fails to expand under the Command Line Tools toolchain.
+@MainActor
+final class Draft<Value>: ObservableObject {
+    @Published var value: Value
+
+    init(_ value: Value) {
+        self.value = value
+    }
+}
+
 /// Which page is open. Shared by the window and the menu commands.
 @MainActor
 final class Navigator: ObservableObject {
     @Published var selection: String? = nil {
         didSet { remember() }
     }
+    @Published var query = ""
 
     private let defaults = UserDefaults.standard
 

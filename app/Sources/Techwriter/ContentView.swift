@@ -5,7 +5,6 @@ struct ContentView: View {
     @EnvironmentObject private var progress: ProgressStore
     @EnvironmentObject private var timer: DrillTimer
     @EnvironmentObject private var navigator: Navigator
-    @State private var query = ""
 
     private var current: Item? { navigator.current(in: store) }
     private var shelf: Shelf { navigator.shelf(in: store) }
@@ -16,7 +15,7 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            SidebarView(shelf: shelf, query: query, selection: $navigator.selection)
+            SidebarView(shelf: shelf, query: navigator.query, selection: $navigator.selection)
                 .navigationSplitViewColumnWidth(min: 250, ideal: 300)
         } detail: {
             detail
@@ -24,7 +23,7 @@ struct ContentView: View {
                 .toolbar { toolbar }
                 .navigationTitle(current?.title ?? "Today")
         }
-        .searchable(text: $query, placement: .sidebar, prompt: "Search every page")
+        .searchable(text: $navigator.query, placement: .sidebar, prompt: "Search every page")
         .alert("Time is up", isPresented: Binding(
             get: { timer.finished != nil },
             set: { if !$0 { timer.finished = nil } })
@@ -53,7 +52,7 @@ struct ContentView: View {
     }
 
     private func open(_ id: String) {
-        query = ""
+        navigator.query = ""
         navigator.open(id, in: store)
     }
 

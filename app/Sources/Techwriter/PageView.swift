@@ -100,10 +100,10 @@ struct PageView: View {
 struct WritingPane: View {
     let item: Item
     @EnvironmentObject private var progress: ProgressStore
-    @State private var text = ""
+    @StateObject private var draft = Draft("")
 
     private var words: Int {
-        text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
+        draft.value.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
     }
 
     var body: some View {
@@ -126,14 +126,14 @@ struct WritingPane: View {
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.primary.opacity(0.05)))
             }
             label(item.pad == "draft" ? "Draft the piece" : "Your attempt")
-            TextEditor(text: $text)
+            TextEditor(text: $draft.value)
                 .font(.system(size: 15, design: .serif))
                 .lineSpacing(3)
                 .scrollContentBackground(.hidden)
                 .padding(10)
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(nsColor: .textBackgroundColor)))
                 .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color(nsColor: .separatorColor)))
-                .onChange(of: text) { progress.setNote(text, for: item.id) }
+                .onChange(of: draft.value) { progress.setNote(draft.value, for: item.id) }
             HStack {
                 Text(item.pad == "draft" ? "Edit in a later session, after a cool-off." : "Start the timer, then write without editing.")
                 Spacer()
@@ -142,7 +142,7 @@ struct WritingPane: View {
             .font(.caption)
             .foregroundStyle(.secondary)
         }
-        .onAppear { text = progress.note(item.id) }
+        .onAppear { draft.value = progress.note(item.id) }
     }
 
     private func label(_ s: String) -> some View {

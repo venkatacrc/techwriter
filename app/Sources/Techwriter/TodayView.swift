@@ -4,7 +4,7 @@ struct TodayView: View {
     let open: (String) -> Void
     @EnvironmentObject private var store: ProgramStore
     @EnvironmentObject private var progress: ProgressStore
-    @State private var startDate = Date()
+    @StateObject private var startDate = Draft(Date())
 
     var body: some View {
         ScrollView {
@@ -37,9 +37,9 @@ struct TodayView: View {
             }
         }
         HStack(spacing: 14) {
-            DatePicker("Week 1 begins", selection: $startDate, displayedComponents: .date)
+            DatePicker("Week 1 begins", selection: $startDate.value, displayedComponents: .date)
                 .fixedSize()
-            Button("Start week 1") { progress.begin(on: startDate) }
+            Button("Start week 1") { progress.begin(on: startDate.value) }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .keyboardShortcut(.defaultAction)
