@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build web/content.json and the app icons from the Markdown program.
+"""Build web/content.json, which the web app and the Mac app both read.
 
     python tools/build_web.py
 
@@ -13,8 +13,6 @@ import datetime as dt
 import html
 import json
 import re
-import struct
-import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -283,9 +281,10 @@ def render_md(text: str, keep_front: bool = False) -> str:
 
 def plain(md: str) -> str:
     md = re.sub(r"<!--.*?-->", "", md, flags=re.S)
-    md = re.sub(r"`([^`]*)`", r"\1", md)
-    md = re.sub(r"[*_#]", "", md)
-    return re.sub(r"\s+", " ", md).strip()
+    parts = md.split("`")
+    for i in range(0, len(parts), 2):
+        parts[i] = re.sub(r"\*+|(?<!\w)_+|_+(?!\w)|^#+\s*", "", parts[i], flags=re.M)
+    return re.sub(r"\s+", " ", "".join(parts)).strip()
 
 
 def first_paragraph(md: str) -> str:
@@ -299,7 +298,7 @@ def first_paragraph(md: str) -> str:
 
 def item(**kw):
     base = {"section": "", "kicker": "", "summary": "", "minutes": 0, "skill": "",
-            "drills": [], "piece": "", "done": [], "pad": "", "short": ""}
+            "drills": [], "piece": "", "done": [], "pad": "", "short": "", "weeks": []}
     base.update(kw)
     return base
 
@@ -323,7 +322,7 @@ def build_items():
     for chunk in chunks:
         if not chunk.strip():
             continue
-        wm = re.match(r"## Week (\d+)\s*·\s*(.+)\n(.*)\Z", chunk, re.S)
+        wm = re.match(r"## Week (\d+)\s*·\s*([^\n]+)\n(.*)\Z", chunk, re.S)
         if wm:
             n = int(wm.group(1))
             title = wm.group(2).strip()
@@ -341,7 +340,7 @@ def build_items():
                 html=render_md(f"# {title}\n\n{body}"),
             ))
             continue
-        am = re.match(r"## (.+)\n(.*)\Z", chunk, re.S)
+        am = re.match(r"## ([^\n]+)\n(.*)\Z", chunk, re.S)
         if am and am.group(1).startswith("After"):
             items.append(item(
                 id="after", view="weeks", section="Weeks", kicker="After week 12",
@@ -419,7 +418,7 @@ def rerender_weeks(items, program, week_m):
     by = {it["id"]: it for it in items}
     by["program"]["html"] = render_md(intro)
     for chunk in re.split(r"(?=^## )", rest, flags=re.M):
-        wm = re.match(r"## Week (\d+)\s*·\s*(.+)\n(.*)\Z", chunk, re.S)
+        wm = re.match(r"## Week (\d+)\s*·\s*([^\n]+)\n(.*)\Z", chunk, re.S)
         if wm:
             by[f"week-{wm.group(1)}"]["html"] = render_md(f"# {wm.group(2).strip()}\n\n{wm.group(3)}")
         elif chunk.startswith("## After"):
@@ -495,38 +494,6 @@ def self_check(items):
         raise SystemExit("nested list under 'List the moves' did not render")
 
 
-def write_png(path: Path, size: int):
-    """Full-bleed icon so a phone's maskable crop still shows the page."""
-    w = h = size
-    bg, paper, ink, rule = (28, 25, 23, 255), (244, 241, 234, 255), (181, 71, 29, 255), (28, 25, 23, 255)
-    buf = bytearray(bg * (w * h))
-
-    def setp(x, y, c):
-        i = (y * w + x) * 4
-        buf[i:i + 4] = bytes(c)
-
-    x0, y0, x1, y1 = int(w * 0.30), int(h * 0.24), int(w * 0.70), int(h * 0.76)
-    for y in range(y0, y1):
-        for x in range(x0, x1):
-            setp(x, y, paper)
-    for n, frac in enumerate((0.40, 0.50, 0.60)):
-        y = int(h * frac)
-        thick = max(2, size // 48)
-        color = ink if n == 0 else rule
-        x_end = int(w * (0.62 if n == 0 else 0.58))
-        for t in range(thick):
-            for x in range(int(w * 0.36), x_end):
-                setp(x, y + t, color)
-
-    raw = b"".join(b"\x00" + bytes(buf[y * w * 4:(y + 1) * w * 4]) for y in range(h))
-
-    def chunk(tag, data):
-        return struct.pack(">I", len(data)) + tag + data + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
-
-    ihdr = struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0)
-    path.write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
-
-
 def main():
     items = build_items()
     rewrite_links(items)
@@ -540,8 +507,6 @@ def main():
     }
     WEB.mkdir(exist_ok=True)
     (WEB / "content.json").write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
-    write_png(WEB / "icon-192.png", 192)
-    write_png(WEB / "icon-512.png", 512)
     n = sum(len(i["html"]) for i in items)
     print(f"web/content.json: {len(items)} items, {n} bytes of HTML, built {payload['built']}")
 

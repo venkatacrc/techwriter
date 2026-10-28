@@ -8,13 +8,17 @@ const els = new Map();
 function el(sel) {
   if (!els.has(sel)) {
     const store = {
-      innerHTML: "", textContent: "", hidden: false, value: "", checked: false,
+      innerHTML: "", textContent: "", hidden: false, value: "", checked: false, scrollTop: 0,
       dataset: {}, className: "", style: {}, files: [],
     };
+    const classes = new Set();
     store.classList = {
-      toggle() {}, add() {}, remove() {}, contains() { return false; },
+      toggle(c) { classes.has(c) ? classes.delete(c) : classes.add(c); },
+      add(c) { classes.add(c); },
+      remove(c) { classes.delete(c); },
+      contains(c) { return classes.has(c); },
     };
-    store.addEventListener = () => {};
+    store.addEventListener = (ev, fn) => { (store.handlers = store.handlers || {})[ev] = fn; };
     store.querySelector = (s) => el(sel + " " + s);
     store.querySelectorAll = () => [];
     store.closest = () => null;
@@ -39,10 +43,11 @@ global.document = {
   createElement: () => el("el-" + Math.random()),
 };
 global.window = {
-  addEventListener: (ev, fn) => { handlers[ev] = fn; },
+  addEventListener: (ev, fn) => { handlers["w:" + ev] = fn; },
   print: () => {},
   isSecureContext: false,
 };
+global.confirm = () => true;
 const mem = {};
 global.localStorage = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = v; } };
 global.location = {
@@ -54,7 +59,7 @@ global.location = {
     const next = v ? (v.startsWith("#") ? v : "#" + v) : "";
     if (next === this._hash) return;
     this._hash = next;
-    if (handlers.hashchange) handlers.hashchange();
+    if (handlers["w:hashchange"]) handlers["w:hashchange"]();
   },
 };
 global.navigator = {};
@@ -71,46 +76,88 @@ function ordinal(y, m, d) {
 }
 
 setTimeout(() => {
-  const main = el("#main");
-  if (!main.innerHTML.includes("Build the writing muscle")) errors.push(new Error("welcome screen did not render"));
+  const stage = el("#stage");
+  const actions = el("#actions");
+  const drawerBody = el("#drawer-body");
+  const check = (ok, msg) => { if (!ok) errors.push(new Error(msg)); };
+  check(stage.innerHTML.includes("Build the writing muscle"), "welcome screen did not render");
+  check(actions.innerHTML.includes("Start week 1"), "welcome actions missing Start week 1");
+
   const go = (hash, expect) => {
     try { location.hash = hash; }
     catch (e) { errors.push(new Error(`${hash}: ${e.stack}`)); return; }
-    if (expect && !main.innerHTML.includes(expect)) errors.push(new Error(`${hash}: missing “${expect}”`));
+    if (expect) check(stage.innerHTML.includes(expect), `${hash}: missing “${expect}”`);
   };
-  const fire = (type, target) => {
-    try { for (const fn of handlers[type] || []) fn({ target }); }
+  const fire = (type, target, extra = {}) => {
+    try { for (const fn of handlers[type] || []) fn({ target, preventDefault() {}, ...extra }); }
     catch (e) { errors.push(e); }
   };
-  for (const it of content.items) go(it.id, it.title.slice(0, 24));
+  const button = (dataset) => {
+    const t = { dataset, disabled: false, matches: () => false };
+    t.closest = () => t;
+    return t;
+  };
+  const click = (dataset) => fire("click", button(dataset));
+
+  for (const it of content.items) go(it.id, it.title.slice(0, 24).replace(/&/g, "&amp;"));
   go("today", "Build the writing muscle");
   go("missing", "Build the writing muscle");
 
+  // The drawer opens over the page and lists the current view's pages.
+  el("#open-drawer").handlers.click();
+  check(el("#drawer").classList.contains("open"), "drawer did not open");
+  check(drawerBody.innerHTML.includes("week-1") && drawerBody.innerHTML.includes("Export notes"), "drawer missing weeks or More panel");
+  el("#backdrop").handlers.click();
+  check(!el("#drawer").classList.contains("open"), "backdrop did not close the drawer");
+
   const now = new Date();
   const drill = ["D01", "D02", "D03", "D04"][ordinal(now.getFullYear(), now.getMonth() + 1, now.getDate()) % 4];
-  el("#startDate").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  fire("click", { id: "begin", dataset: {}, closest: () => null, matches: () => false });
-  if (!main.innerHTML.includes("Week 1 of 12") || !main.innerHTML.includes(drill)) {
-    errors.push(new Error("today did not show week 1 and drill " + drill));
-  }
+  el("#start-date").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  click({ act: "begin" });
+  check(stage.innerHTML.includes("Week 1 of 12") && stage.innerHTML.includes(drill), "today did not show week 1 and drill " + drill);
+  check(actions.innerHTML.includes(`data-id="${drill}"`), "Today's drill button does not point at " + drill);
+
   go("D01", "Done when");
+  check(actions.innerHTML.includes("timer-btn") && actions.innerHTML.includes("Done"), "drill actions missing timer or done");
   fire("input", { id: "pad", value: "Ten claims about the kernel.", dataset: {} });
-  fire("click", { id: "doneBtn", dataset: {}, closest: () => null, matches: () => false });
-  if (!main.innerHTML.includes("Done · undo")) errors.push(new Error("mark done did not stick"));
-  go("week-1", "Weekly piece");
-  go("D01", "Done when");
+  click({ act: "done" });
+  check(actions.innerHTML.includes("btn good"), "mark done did not stick");
+  click({ act: "timer" });
+  check(el("#actions").innerHTML.includes("⏱"), "timer label missing");
+  click({ act: "timer" });
+
+  fire("keydown", { matches: () => false }, { key: "ArrowRight" });
+  check(location.hash === "#D02", "ArrowRight did not move to D02: " + location.hash);
+  click({ act: "step", delta: "-1" });
+  check(location.hash === "#D01", "previous button did not return to D01");
   if (el("#pad").value !== "Ten claims about the kernel.") errors.push(new Error("note was not saved: " + JSON.stringify(el("#pad").value)));
-  el("#search").value = "atomics";
+
+  // Drills drawer: one collapsible group per week, current one open.
+  el("#open-drawer").handlers.click();
+  check(drawerBody.innerHTML.includes("source-head") && drawerBody.innerHTML.includes('data-id="D01"'), "drills drawer missing groups");
+  check(drawerBody.innerHTML.includes('class="row on"'), "drills drawer does not mark the open page");
+  click({ act: "fold", section: content.items.find((i) => i.id === "D01").section });
+  check(!drawerBody.innerHTML.includes('data-id="D01"'), "folding the week did not hide its drills");
+
   fire("input", { id: "search", value: "atomics", dataset: {} });
-  if (!el("#list").innerHTML.toLowerCase().includes("atomics") && !el("#list").innerHTML.includes("Explaining")) {
-    errors.push(new Error("search missed the atomics pages"));
-  }
+  check(/atomics|Explaining/i.test(drawerBody.innerHTML), "search missed the atomics pages");
+  fire("input", { id: "search", value: "", dataset: {} });
+
+  click({ act: "view", view: "library" });
+  check(content.items.find((i) => i.id === location.hash.slice(1)).view === "library", "Library switch did not open a library page");
+  click({ act: "view", view: "today" });
+  check(stage.innerHTML.includes("Week 1 of 12"), "Today switch did not return to today");
+
   go("principles/05_math", "∑");
+  go("week-1", "Weekly piece");
+  check(actions.innerHTML.includes("Piece done"), "week actions missing Piece done");
+
   // 2026-10-28 is ordinal 739917 in Python's datetime.date
-  if (ordinal(2026, 10, 28) !== 739917) errors.push(new Error("ordinal " + ordinal(2026, 10, 28) + " != 739917"));
+  check(ordinal(2026, 10, 28) === 739917, "ordinal " + ordinal(2026, 10, 28) + " != 739917");
   if (errors.length) {
     for (const e of errors) console.error(e.stack || e);
     process.exit(1);
   }
   console.log(`smoke ok: ${content.items.length} pages`);
+  process.exit(0);
 }, 30);

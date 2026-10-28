@@ -1,71 +1,66 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1c1917">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="A 12-week practice program for technical writing about GPUs, training, inference, reinforcement learning and systems.">
-  <title>Techwriter</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#2f55c9">
+    <meta name="description" content="A 12-week practice program for technical writing about GPUs, training, inference, reinforcement learning and systems.">
+    <title>Techwriter</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="app.css">
 </head>
 <body>
-  <header class="toolbar">
-    <button id="menuBtn" class="icon-btn only-narrow" aria-label="Contents">☰</button>
-    <div class="brand">Techwriter</div>
-    <div class="crumb" id="crumb">Today</div>
-    <nav class="tabs" role="tablist">
-      <button type="button" data-view="today" role="tab">Today</button>
-      <button type="button" data-view="weeks" role="tab">Weeks</button>
-      <button type="button" data-view="drills" role="tab">Drills</button>
-      <button type="button" data-view="library" role="tab">Library</button>
-    </nav>
-    <div class="spacer"></div>
-    <div class="menu">
-      <button id="moreBtn" class="icon-btn" type="button" aria-label="More">⋮</button>
-      <div id="moreMenu" class="menu-pop" hidden>
-        <button type="button" id="exportBtn">Export notes…</button>
-        <button type="button" id="importBtn">Import notes…</button>
-        <button type="button" id="printBtn">Print…</button>
-        <button type="button" id="resetBtn">Reset this device…</button>
-        <hr>
-        <a id="repoLink" href="https://github.com/venkatacrc/techwriter" target="_blank" rel="noopener">Repository</a>
-        <button type="button" id="helpBtn">Shortcuts</button>
-      </div>
-      <input type="file" id="importFile" accept="application/json" hidden>
+    <div id="app">
+        <header class="topbar">
+            <button class="icon-btn" id="open-drawer" aria-label="Contents and options">☰</button>
+            <div class="brand"><span class="mark">¶</span> Techwriter</div>
+            <button class="icon-btn" id="open-search" aria-label="Search" title="Search">
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/>
+                </svg>
+            </button>
+        </header>
+        <div class="switches">
+            <div class="segmented" id="view-switch"></div>
+        </div>
+        <div class="status" id="status"></div>
+        <main id="stage"></main>
+        <nav class="actions" id="actions"></nav>
     </div>
-  </header>
 
-  <div class="layout">
-    <aside id="sidebar" class="sidebar">
-      <div class="side-search">
-        <input id="search" type="search" placeholder="Search" aria-label="Search" autocomplete="off">
-      </div>
-      <ol id="list" class="nav-list"></ol>
-      <div class="side-foot" id="sideFoot"></div>
+    <div class="backdrop" id="backdrop" hidden></div>
+    <aside class="drawer" id="drawer" aria-hidden="true">
+        <div class="drawer-head">
+            <div class="brand"><span class="mark">¶</span> Techwriter</div>
+            <button class="icon-btn" id="close-drawer" aria-label="Close">✕</button>
+        </div>
+        <div class="drawer-search">
+            <input type="search" id="search" placeholder="Search every page" autocomplete="off" aria-label="Search">
+        </div>
+        <div class="drawer-body" id="drawer-body"></div>
+        <div class="drawer-foot" id="drawer-foot"></div>
     </aside>
-    <div id="scrim" hidden></div>
-    <main id="main" class="main" tabindex="-1"></main>
-  </div>
 
-  <div id="toast" class="toast" hidden></div>
+    <dialog id="help-dialog">
+        <div class="dialog-body">
+            <h2>Shortcuts</h2>
+            <p>On a phone, swipe the page left or right to move between pages.</p>
+            <table class="keys">
+                <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Previous / next page</td></tr>
+                <tr><td><kbd>1</kbd>–<kbd>4</kbd></td><td>Today, Weeks, Drills, Library</td></tr>
+                <tr><td><kbd>T</kbd></td><td>Start or stop the drill timer</td></tr>
+                <tr><td><kbd>D</kbd></td><td>Mark done</td></tr>
+                <tr><td><kbd>/</kbd></td><td>Search</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td>Close the drawer, or leave the writing box</td></tr>
+            </table>
+        </div>
+        <form method="dialog" class="dialog-actions"><button class="btn primary">Close</button></form>
+    </dialog>
+    <input type="file" id="import-file" accept="application/json" hidden>
+    <div class="toast" id="toast" hidden></div>
 
-  <dialog id="helpDlg">
-    <h3>Shortcuts</h3>
-    <table>
-      <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>previous / next</td></tr>
-      <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td>Today, Weeks, Drills, Library</td></tr>
-      <tr><td><kbd>/</kbd></td><td>search</td></tr>
-      <tr><td><kbd>Esc</kbd></td><td>leave the writing box</td></tr>
-    </table>
-    <p class="fine">On a phone, swipe left or right to move between pages. Notes stay on this device.</p>
-    <form method="dialog"><button class="btn" type="submit">Close</button></form>
-  </dialog>
-
-  <script src="app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

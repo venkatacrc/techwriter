@@ -39,18 +39,30 @@ Other commands: `tw drills` (the catalogue), `tw drill D17` (a specific drill), 
 
 `PROGRAM.md` lays out the 12 weeks: reader and claim, paragraphs, numbers, figures, mechanisms, mathematics, systems narratives, white paper, paper (two weeks), review and rebuttal, and shipping.
 
-## Phone and computer
+## Phone and Mac
 
-`web/` is the same program as an installable page. It works in a desktop browser and on a phone (install it from the browser menu: **Install app** or **Add to Home screen**). After the first load it keeps working offline.
+The program also comes as two apps that read the same `web/content.json`.
+
+**Web app, for the phone.** Open [venkatacrc.github.io/techwriter](https://venkatacrc.github.io/techwriter/) on the Pixel in Chrome, then ⋮ → **Install app** (or **Add to Home screen**). After the first load it works offline. The ☰ button opens the contents: the pages of the current view, search, and a **More** panel to print, export or import notes, and reset. Swipe the page left or right to move between pages.
 
 ```bash
 python tools/build_web.py          # rebuild web/content.json after editing the Markdown
+node tools/smoke_web.js            # render every page against a stub DOM
 python -m http.server -d web 8765  # then open http://localhost:8765
 ```
 
-Read the weeks, the drills and the library. Each drill has a timer and a writing box. Notes and progress stay in the browser; the ⋮ menu exports and imports them. Set **Week 1 begins** to the day you ran `tw start`, and the page picks the same drill as `tw today`. The journal of record is still the `tw` tools on your computer.
+**Mac app.** A SwiftUI app in `app/`, for macOS 14 or later. Build it on the Mac with Xcode or the Command Line Tools:
 
-Publishing the page (GitHub → Settings → Pages → Source: **GitHub Actions**) puts it at `https://venkatacrc.github.io/techwriter/` after a push to `main`.
+```bash
+./scripts/build_app.sh             # writes build/Techwriter.app
+open build/Techwriter.app
+```
+
+The sidebar lists the pages of the current view, with search at the top. Drills and weekly pieces open beside a writing pane with the **Done when** checklist. Shortcuts: ⌘1 to ⌘4 switch views, ⌘[ and ⌘] move between pages, ⌘T starts the timer, ⌘D marks a page done, ⌘P prints or saves a PDF.
+
+Both apps keep notes and progress on the device. **Export notes** in one and **Import notes** in the other moves them across; the file format is the same. Set **Week 1 begins** to the day you ran `tw start`, and both pick the same drill as `tw today`. The journal of record is still the `tw` tools on your computer.
+
+A push to `main` republishes the web app through GitHub Actions (Settings → Pages → Source: **GitHub Actions**).
 
 ## The rules
 
@@ -74,7 +86,9 @@ Publishing the page (GitHub → Settings → Pages → Source: **GitHub Actions*
 | `reading/` | The reading protocol and the exemplar list |
 | `publishing/` | Venues, and the process from employer approval to rebuttal and revision |
 | `prompts/reviewer.md` | An AI critique prompt that quotes and diagnoses but never rewrites |
-| `tools/` | `tw.py` (the workflow) and `twlint.py` (the linter) |
+| `tools/` | `tw.py` (the workflow), `twlint.py` (the linter), `build_web.py` (builds `web/content.json`) |
+| `web/` | The web app for the phone and the browser |
+| `app/`, `scripts/` | The Mac app and its build script |
 | `journal/` | Your writing: drills, pieces, review sheets |
 
 ## The linter

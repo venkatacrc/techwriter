@@ -1,15 +1,17 @@
 {
-  "name": "Techwriter",
-  "short_name": "Techwriter",
-  "description": "A 12-week practice program for technical writing.",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "background_color": "#1c1917",
-  "theme_color": "#1c1917",
-  "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" },
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ]
+    "name": "Techwriter",
+    "short_name": "Techwriter",
+    "description": "A 12-week practice program for technical writing.",
+    "id": "./",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#f6f2ec",
+    "theme_color": "#2f55c9",
+    "icons": [
+        { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
 }

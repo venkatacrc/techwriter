@@ -4,7 +4,7 @@ Modelled on the questions conference reviewers answer. Use for conference, works
 
 | Row | Criterion | 1 | 2 | 3 | 4 |
 |---|---|---|---|---|---|
-| R1 | Contribution | Cannot be stated in one sentence | Stated but not clearly new | Clear and new; bulleted in the introduction | Clear, new, significant, and each bullet is a testable claim |
+| R1 | Contribution | Cannot be stated in one sentence | Stated, but its novelty is unclear | Clear and new; bulleted in the introduction | Clear, new, significant, and each bullet is a testable claim |
 | R2 | Abstract and introduction | Missing moves (problem, gap, approach, result, implication) | All moves, result without a number | All moves with the main number | A reviewer could write the summary of the review from these alone |
 | R3 | Motivation | Asserted | Cited from others' work | Measured | A measurement that makes the design look inevitable |
 | R4 | Evaluation design | No baselines | Weak or untuned baselines | Fair baselines, stated questions | Fair, tuned baselines; questions first; ablations attribute every gain |
