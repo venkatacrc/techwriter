@@ -1,0 +1,15 @@
+# Acronyms your readers know without a definition. One or more per line; '#' starts a comment.
+# Be strict: add an acronym only if every reader of every form you write for knows it.
+# A white paper for executives and a paper for MLSys reviewers have different lists;
+# when in doubt, define it.
+GPU GPUs CPU CPUs API APIs AI ML OK US UK PDF URL HTTP HTML JSON CSV SQL RAM USB
+PI TODO FAQ CEO CTO IT PR
+# proper names: these are names, not abbreviations a reader expands
+NVIDIA AMD CUDA ROCm NCCL NVLink ACM IEEE USENIX SIAM AAAI SIGPLAN SIGARCH SIGOPS SIGKDD SIGIR SIGMOD
+MLSys ASPLOS ISCA MICRO HPCA SC PPoPP CGO OSDI SOSP EuroSys ATC NSDI NeurIPS ICML ICLR AISTATS UAI
+TPU A100 H100 H200 B200 GB200 JPEG PCIe
+RecSys KDD WWW WSDM CIKM RLC AAMAS JMLR TMLR TPDS TACO TOCS TORS TPAMI CACM
+# roman numerals
+II III IV VI VII VIII IX XI XII
+# units
+KB MB GB TB PB KiB MiB GiB TiB FLOP FLOPs GFLOP TFLOP PFLOP TOPS GHz MHz QPS RPS

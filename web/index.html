@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1917">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="A 12-week practice program for technical writing about GPUs, training, inference, reinforcement learning and systems.">
+  <title>Techwriter</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="toolbar">
+    <button id="menuBtn" class="icon-btn only-narrow" aria-label="Contents">☰</button>
+    <div class="brand">Techwriter</div>
+    <div class="crumb" id="crumb">Today</div>
+    <nav class="tabs" role="tablist">
+      <button type="button" data-view="today" role="tab">Today</button>
+      <button type="button" data-view="weeks" role="tab">Weeks</button>
+      <button type="button" data-view="drills" role="tab">Drills</button>
+      <button type="button" data-view="library" role="tab">Library</button>
+    </nav>
+    <div class="spacer"></div>
+    <div class="menu">
+      <button id="moreBtn" class="icon-btn" type="button" aria-label="More">⋮</button>
+      <div id="moreMenu" class="menu-pop" hidden>
+        <button type="button" id="exportBtn">Export notes…</button>
+        <button type="button" id="importBtn">Import notes…</button>
+        <button type="button" id="printBtn">Print…</button>
+        <button type="button" id="resetBtn">Reset this device…</button>
+        <hr>
+        <a id="repoLink" href="https://github.com/venkatacrc/techwriter" target="_blank" rel="noopener">Repository</a>
+        <button type="button" id="helpBtn">Shortcuts</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside id="sidebar" class="sidebar">
+      <div class="side-search">
+        <input id="search" type="search" placeholder="Search" aria-label="Search" autocomplete="off">
+      </div>
+      <ol id="list" class="nav-list"></ol>
+      <div class="side-foot" id="sideFoot"></div>
+    </aside>
+    <div id="scrim" hidden></div>
+    <main id="main" class="main" tabindex="-1"></main>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <dialog id="helpDlg">
+    <h3>Shortcuts</h3>
+    <table>
+      <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>previous / next</td></tr>
+      <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td>Today, Weeks, Drills, Library</td></tr>
+      <tr><td><kbd>/</kbd></td><td>search</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>leave the writing box</td></tr>
+    </table>
+    <p class="fine">On a phone, swipe left or right to move between pages. Notes stay on this device.</p>
+    <form method="dialog"><button class="btn" type="submit">Close</button></form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
